@@ -3,22 +3,20 @@ import { Dispatch } from 'redux';
 import Sockets from 'react-native-sockets';
 import { DeviceEventEmitter } from 'react-native';
 
-import {
-  updateTime,
-  updateScenario,
-  setConnectionStatus,
-} from '../store/app/actions';
+import IDevice from '../types/IDevice';
+import { IConnection } from '../types/IConnection';
+import { updateTime, updateScenario } from '../store/app/actions';
+import { updateConnection } from '../store/connection/actions';
 import { updateDevice } from '../store/devices/actions';
 import { addPlaces } from '../store/places/actions';
+import { decodeUTF8 } from '../lib/text';
 import getXmlMessage from './getXmlMessage';
 import xmlToJson from './xmlToJson';
 import { normalizePlaces } from './storeUtils';
-import { decodeUTF8 } from '../lib/text';
-import IDevice from '../types/IDevice';
 
 interface IXMPP {
   connect: () => void;
-  isConnected: () => boolean;
+  connection: IConnection;
   isLogged: () => boolean;
   disconnect: () => void;
   dispatch: Dispatch | null;
@@ -52,6 +50,10 @@ interface IXMPP {
 XMPP.trustHosts(['jabb.im']);
 
 export const xmpp: IXMPP = {
+  connection: {
+    local: false,
+    internet: false,
+  },
   localIp: null,
   password: null,
   serverName: null,
@@ -59,31 +61,22 @@ export const xmpp: IXMPP = {
   lastUpdateTime: null,
   dispatch: null,
   loginListener: null,
-  isConnected: () => {
-    if (xmpp.localIp) {
-      return false;
-    }
-    return XMPP.isConnected;
-  },
   connect: () => {
-    if (!xmpp.isConnected()) {
-      if (xmpp.localIp) {
-        const socketConfig = {
-          address: xmpp.localIp, //ip address of server
-          port: 8081, //port of socket server
-          reconnect: true, //OPTIONAL (default false): auto-reconnect on lost server
-          reconnectDelay: 500, //OPTIONAL (default 500ms): how often to try to auto-reconnect
-          maxReconnectAttempts: 10, //OPTIONAL (default infinity): how many time to attemp to auto-reconnect
-        };
-        Sockets.startClient(socketConfig);
-      } else {
-        const { userName, password } = xmpp;
-        XMPP.connect(`${userName}@jabb.im`, password);
-      }
+    // local connection
+    if (xmpp.localIp) {
+      const socketConfig = {
+        address: xmpp.localIp,
+        port: 8081,
+      };
+      Sockets.startClient(socketConfig);
     }
+
+    // internet connection
+    const { userName, password } = xmpp;
+    XMPP.connect(`${userName}@jabb.im`, password);
   },
   isLogged: () => {
-    if (xmpp.localIp) {
+    if (xmpp.connection.local) {
       return true;
     }
     return XMPP.isLogged;
@@ -104,151 +97,138 @@ export const xmpp: IXMPP = {
       xmpp.userName = userName || xmpp.userName;
       xmpp.loginListener = loginListener || xmpp.loginListener;
       if (xmpp.dispatch) {
-        if (xmpp.localIp) {
-          xmpp.connect();
-          //on connected
-          DeviceEventEmitter.addListener('socketClient_connected', () => {
-            console.debug('CONNECTED!');
-            xmpp.dispatch!(setConnectionStatus(true));
-            xmpp.loginListener(
-              xmpp.localIp,
-              xmpp.password,
-              xmpp.serverName,
-              xmpp.userName
-            );
-            return resolve();
-          });
-          //on error
-          DeviceEventEmitter.addListener('socketClient_error', (data) => {
-            console.debug('connection error:' + data.error);
-            return reject(data.error);
-          });
-          //on new message
-          DeviceEventEmitter.addListener('socketClient_data', (payload) => {
-            const parts = decodeUTF8(payload.data).split('&');
-            const msg = parts[5];
-            const msgType = parts[4];
-            xmpp.lastUpdateTime = parts[3];
-            if (parts.length === 7 || parts[0] === 'server') {
-              if (msgType === '0') {
-                const xml = getXmlMessage(msg);
-                if (xml) {
-                  const json = xmlToJson(xml);
-                  const scenarioId =
-                    json.settings.currentscenario['@attributes'].value;
-                  const normalizedData = normalizePlaces(json.settings
-                    .places as any);
-                  normalizedData[1].forEach((device: IDevice) => {
-                    xmpp.getDeviceStatus(device.number);
-                  });
-                  xmpp.dispatch!(addPlaces(normalizedData));
-                  xmpp.dispatch!(updateTime(xmpp.lastUpdateTime));
-                  xmpp.dispatch!(updateScenario(Number(scenarioId)));
-                }
-              } else if (msgType === '2') {
-                const msgParts = msg.split('-');
-                const deviceNumber = msgParts[2];
-                xmpp.dispatch!(
-                  updateDevice(
-                    deviceNumber,
-                    msgParts[3],
-                    msgParts[4],
-                    msgParts[5],
-                    msgParts[6],
-                    msgParts[7]
-                  )
-                );
-              } else if (msgType === '1') {
-                xmpp.dispatch!(updateScenario(Number(msg)));
-              }
-            }
-          });
-          //on client closed
-          DeviceEventEmitter.addListener('socketClient_closed', (data) => {
-            console.debug('DISCONNECTED!');
-            xmpp.dispatch!(setConnectionStatus(false));
-          });
-        } else {
-          if (!xmpp.isLogged()) {
-            xmpp.connect();
-            XMPP.on('connect', () => {
-              console.debug('CONNECTED!');
-              xmpp.dispatch!(setConnectionStatus(true));
-            });
-            XMPP.on('disconnect', () => {
-              console.debug('DISCONNECTED!');
-              xmpp.dispatch!(setConnectionStatus(false));
-            });
-            XMPP.on('error', (message) => {
-              console.debug('ERROR:' + message);
-              return reject();
-            });
-            XMPP.on('login', () => {
-              xmpp.loginListener(localIp, password, serverName, userName);
-              return resolve();
-            });
-            XMPP.on('loginError', (message) => {
-              const xml = getXmlMessage(message);
+        xmpp.connect();
+        DeviceEventEmitter.addListener('socketClient_connected', () => {
+          xmpp.dispatch!(updateConnection('local', true));
+          xmpp.loginListener(
+            xmpp.localIp,
+            xmpp.password,
+            xmpp.serverName,
+            xmpp.userName
+          );
+          return resolve();
+        });
+        DeviceEventEmitter.addListener('socketClient_closed', (data) => {
+          console.debug('DISCONNECTED!');
+          xmpp.dispatch!(updateConnection('local', false));
+        });
+        DeviceEventEmitter.addListener('socketClient_error', (data) => {
+          console.debug('connection error:' + data.error);
+          return reject(data.error);
+        });
+        DeviceEventEmitter.addListener('socketClient_data', (payload) => {
+          const parts = decodeUTF8(payload.data).split('&');
+          const msg = parts[5];
+          const msgType = parts[4];
+          xmpp.lastUpdateTime = parts[3];
+          if (parts.length === 7 || parts[0] === 'server') {
+            if (msgType === '0') {
+              const xml = getXmlMessage(msg);
               if (xml) {
-                const msg = xmlToJson(xml);
-                return reject(msg.failure.text);
+                const json = xmlToJson(xml);
+                const scenarioId =
+                  json.settings.currentscenario['@attributes'].value;
+                const normalizedData = normalizePlaces(json.settings
+                  .places as any);
+                normalizedData[1].forEach((device: IDevice) => {
+                  xmpp.getDeviceStatus(device.number);
+                });
+                xmpp.dispatch!(addPlaces(normalizedData));
+                xmpp.dispatch!(updateTime(xmpp.lastUpdateTime));
+                xmpp.dispatch!(updateScenario(Number(scenarioId)));
               }
-            });
-            XMPP.on('message', (message) => {
-              const parts = message.body.split('&');
-              const msg = parts[5];
-              const msgType = parts[4];
-              xmpp.lastUpdateTime = parts[3];
-              if (parts.length === 7 || parts[0] === 'server') {
-                if (msgType === '0') {
-                  const xml = getXmlMessage(msg);
-                  if (xml) {
-                    const json = xmlToJson(xml);
-                    const scenarioId =
-                      json.settings.currentscenario['@attributes'].value;
-                    const normalizedData = normalizePlaces(json.settings
-                      .places as any);
-                    normalizedData[1].forEach((device: IDevice) => {
-                      xmpp.getDeviceStatus(device.number);
-                    });
-                    xmpp.dispatch!(addPlaces(normalizedData));
-                    xmpp.dispatch!(updateTime(xmpp.lastUpdateTime));
-                    xmpp.dispatch!(updateScenario(Number(scenarioId)));
-                  }
-                } else if (msgType === '2') {
-                  const msgParts = msg.split('-');
-                  const deviceNumber = msgParts[2];
-                  xmpp.dispatch!(
-                    updateDevice(
-                      deviceNumber,
-                      msgParts[3],
-                      msgParts[4],
-                      msgParts[5],
-                      msgParts[6],
-                      msgParts[7]
-                    )
-                  );
-                } else if (msgType === '1') {
-                  xmpp.dispatch!(updateScenario(Number(msg)));
-                }
-              }
-            });
-          } else {
-            return resolve();
+            } else if (msgType === '2') {
+              const msgParts = msg.split('-');
+              const deviceNumber = msgParts[2];
+              xmpp.dispatch!(
+                updateDevice(
+                  deviceNumber,
+                  msgParts[3],
+                  msgParts[4],
+                  msgParts[5],
+                  msgParts[6],
+                  msgParts[7]
+                )
+              );
+            } else if (msgType === '1') {
+              xmpp.dispatch!(updateScenario(Number(msg)));
+            }
           }
-        }
+        });
+
+        // internet connection
+        XMPP.on('connect', () => {
+          xmpp.dispatch!(updateConnection('internet', true));
+        });
+        XMPP.on('disconnect', () => {
+          xmpp.dispatch!(updateConnection('internet', false));
+        });
+        XMPP.on('error', (message) => {
+          console.debug('ERROR:' + message);
+          return reject();
+        });
+        XMPP.on('login', () => {
+          xmpp.loginListener(localIp, password, serverName, userName);
+          return resolve();
+        });
+        XMPP.on('loginError', (message) => {
+          const xml = getXmlMessage(message);
+          if (xml) {
+            const msg = xmlToJson(xml);
+            return reject(msg.failure.text);
+          }
+        });
+        XMPP.on('message', (message) => {
+          const parts = message.body.split('&');
+          const msg = parts[5];
+          const msgType = parts[4];
+          xmpp.lastUpdateTime = parts[3];
+          if (parts.length === 7 || parts[0] === 'server') {
+            if (msgType === '0') {
+              const xml = getXmlMessage(msg);
+              if (xml) {
+                const json = xmlToJson(xml);
+                const scenarioId =
+                  json.settings.currentscenario['@attributes'].value;
+                const normalizedData = normalizePlaces(json.settings
+                  .places as any);
+                normalizedData[1].forEach((device: IDevice) => {
+                  xmpp.getDeviceStatus(device.number);
+                });
+                xmpp.dispatch!(addPlaces(normalizedData));
+                xmpp.dispatch!(updateTime(xmpp.lastUpdateTime));
+                xmpp.dispatch!(updateScenario(Number(scenarioId)));
+              }
+            } else if (msgType === '2') {
+              const msgParts = msg.split('-');
+              const deviceNumber = msgParts[2];
+              xmpp.dispatch!(
+                updateDevice(
+                  deviceNumber,
+                  msgParts[3],
+                  msgParts[4],
+                  msgParts[5],
+                  msgParts[6],
+                  msgParts[7]
+                )
+              );
+            } else if (msgType === '1') {
+              xmpp.dispatch!(updateScenario(Number(msg)));
+            }
+          }
+        });
       }
     });
   },
   message: (msg: string) => {
-    if (xmpp.localIp) {
+    if (xmpp.connection.local) {
       Sockets.write(msg);
     } else {
       XMPP.message(msg, `${xmpp.serverName}@jabb.im`);
     }
   },
   disconnect: () => {
-    if (xmpp.localIp) {
+    if (xmpp.connection.local) {
       Sockets.disconnect();
     } else {
       XMPP.disconnect();

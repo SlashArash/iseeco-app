@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, NetInfo, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { Formik } from 'formik';
 import { connect, MapStateToProps } from 'react-redux';
 import { NavigationRoute, NavigationScreenProp } from 'react-navigation';

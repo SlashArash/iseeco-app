@@ -3,7 +3,6 @@ export enum AppActionTypes {
   LOGOUT = '@app/LOGOUT',
   UPDATE_TIME = '@app/UPDATE_TIME',
   UPDATE_SCENARIO = '@app/UPDATE_SCENARIO',
-  SET_CONNECTION_STATUS = '@app/SET_CONNECTION_STATUS',
 }
 
 export interface ILogin {
@@ -28,14 +27,4 @@ export interface IUpdateScenario {
   scenarioId: number;
 }
 
-export interface ISetConnectionStatus {
-  type: AppActionTypes.SET_CONNECTION_STATUS;
-  connected: boolean;
-}
-
-export type AppActions =
-  | ILogin
-  | ILogout
-  | IUpdateTime
-  | IUpdateScenario
-  | ISetConnectionStatus;
+export type AppActions = ILogin | ILogout | IUpdateTime | IUpdateScenario;

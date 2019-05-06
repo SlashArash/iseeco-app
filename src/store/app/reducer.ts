@@ -34,8 +34,6 @@ const AppReducer = (state: IApp = initialState, action: AppActions) =>
       case AppActionTypes.UPDATE_SCENARIO:
         draft.scenario = action.scenarioId;
         break;
-      case AppActionTypes.SET_CONNECTION_STATUS:
-        draft.connected = action.connected;
     }
   });
 

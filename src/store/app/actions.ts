@@ -4,7 +4,6 @@ import {
   AppActionTypes,
   IUpdateTime,
   IUpdateScenario,
-  ISetConnectionStatus,
 } from '../../types/AppActions';
 
 export const login = (
@@ -32,11 +31,4 @@ export const updateTime = (lastUpdateTime: string | null): IUpdateTime => ({
 export const updateScenario = (scenarioId: number): IUpdateScenario => ({
   type: AppActionTypes.UPDATE_SCENARIO,
   scenarioId,
-});
-
-export const setConnectionStatus = (
-  connected: boolean
-): ISetConnectionStatus => ({
-  type: AppActionTypes.SET_CONNECTION_STATUS,
-  connected,
 });
