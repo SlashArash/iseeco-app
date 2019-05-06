@@ -60,7 +60,7 @@ const PlaceCard: StatelessComponent<IComponentProps> = ({
           <StyledText>{place.name}</StyledText>
           <StyledText style={{ color: colors.smoke, fontSize: 10 }}>
             {devicesNumber > 0
-              ? devicesNumber
+              ? `${devicesNumber} ${messages.device}`
               : `${messages.without} ${messages.device}`}
           </StyledText>
         </View>
