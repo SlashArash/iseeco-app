@@ -157,7 +157,7 @@ signingConfig signingConfigs.release
 
 dependencies {
     implementation project(':@react-native-community_netinfo')
-    compile project(':react-native-sockets')
+    implementation project(':react-native-sockets')
     implementation project(':react-native-vector-icons')
     implementation project(':react-native-gesture-handler')
     implementation project(':react-native-xmpp')
