@@ -21,10 +21,6 @@ interface IStateToProps {
 type IComponentProps = IStateToProps;
 
 class StatusBox extends React.PureComponent<IComponentProps> {
-  handleReconnect = () => {
-    xmpp.login();
-  };
-
   render(): React.ReactNode {
     const { connection, devices } = this.props;
     const activeDevices = Object.values(devices).reduce(
@@ -48,7 +44,7 @@ class StatusBox extends React.PureComponent<IComponentProps> {
         ]}
       >
         <Image
-          source={require(`../../../assets/images/light.png`)}
+          source={require(`../../../assets/images/iseeco.png`)}
           style={styles.image}
         />
         <View style={styles.textWrapper}>
@@ -56,18 +52,14 @@ class StatusBox extends React.PureComponent<IComponentProps> {
             <StyledText style={[styles.mainText, styles.lightColor]}>
               {messages.smartHomeSystem}
             </StyledText>
-            <Image
-              source={require(`../../../assets/images/iseeco.png`)}
-              style={styles.logo}
-            />
           </View>
-          {!connection.local && !connection.internet ? (
-            <Button onPress={this.handleReconnect} title={messages.reconnect} />
-          ) : (
-            <StyledText style={styles.lightColor}>
-              {messages.activeSensors}: {activeDevices}
-            </StyledText>
-          )}
+          <StyledText style={styles.lightColor}>
+            {messages.activeSensors}: {activeDevices}
+          </StyledText>
+          <StyledText style={{ color: '#FFFFFF' }}>
+            {messages.localConnection}: {connection.local ? '✓' : '×'} {' - '}
+            {messages.internetConnection}: {connection.internet ? '✓' : '×'}
+          </StyledText>
         </View>
       </View>
     );

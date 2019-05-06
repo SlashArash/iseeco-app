@@ -7,6 +7,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     flex: 1,
     justifyContent: 'space-between',
+    alignItems: 'center',
     flexDirection: 'row',
     padding: 10,
   },
@@ -17,9 +18,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navyBlue,
   },
   image: {
-    height: 87.5,
-    width: 70,
-    opacity: 0.6,
+    height: 50,
+    width: 100,
+    opacity: 0.8,
   },
   logoContainer: { flexDirection: 'row-reverse', justifyContent: 'center' },
   logo: {
