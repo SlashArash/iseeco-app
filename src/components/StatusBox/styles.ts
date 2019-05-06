@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
-    padding: 10,
+    padding: 15,
   },
   disconnectedContainer: {
     backgroundColor: colors.red,
