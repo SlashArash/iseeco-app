@@ -221,16 +221,21 @@ export const xmpp: IXMPP = {
     });
   },
   message: (msg: string) => {
-    if (xmpp.connection.local) {
-      Sockets.write(msg);
+    if (xmpp.connection.local || xmpp.connection.internet) {
+      if (xmpp.connection.local) {
+        Sockets.write(msg);
+      } else {
+        XMPP.message(msg, `${xmpp.serverName}@jabb.im`);
+      }
     } else {
-      XMPP.message(msg, `${xmpp.serverName}@jabb.im`);
+      xmpp.connect();
     }
   },
   disconnect: () => {
     if (xmpp.connection.local) {
       Sockets.disconnect();
-    } else {
+    }
+    if (xmpp.connection.internet) {
       XMPP.disconnect();
       XMPP.removeListeners();
     }
