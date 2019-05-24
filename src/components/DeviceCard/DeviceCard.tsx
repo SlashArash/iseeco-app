@@ -50,7 +50,7 @@ class DeviceCard extends React.PureComponent<IComponentProps> {
     if (deviceType === 'curtain') {
       icon = device.active === 'on' ? windowActive : window;
     } else if (deviceType === 'thermostat') {
-      if (device.iconnumber === '1') {
+      if (device.iconnumber === '2') {
         icon = device.active === 'on' ? thermostatActive : thermostat;
       } else {
         icon = device.active === 'on' ? airConditionerActive : airConditioner;
@@ -58,23 +58,32 @@ class DeviceCard extends React.PureComponent<IComponentProps> {
     } else if (deviceType === 'lamp') {
       if (device.iconnumber === '1') {
         icon = device.active === 'on' ? bulbActive : bulb;
-      } else if (device.iconnumber === '4') {
+      } else if (device.iconnumber === '2') {
+        // dancing light
         icon = device.active === 'on' ? dancingLightActive : dancingLight;
-      } else if (device.iconnumber === '5') {
+      } else if (device.iconnumber === '3') {
+        // chandelier
         icon = device.active === 'on' ? chandelierActive : chandelier;
-      } else if (device.iconnumber === '6') {
+      } else if (device.iconnumber === '4') {
+        // socket
         icon = device.active === 'on' ? socketActive : socket;
-      } else if (device.iconnumber === '7') {
+      } else if (device.iconnumber === '5') {
+        // fan
         icon = device.active === 'on' ? fanActive : fan;
-      } else if (device.iconnumber === '8') {
+      } else if (device.iconnumber === '6') {
+        // elevator
         icon = device.active === 'on' ? elevatorActive : elevator;
-      } else if (device.iconnumber === '9') {
+      } else if (device.iconnumber === '7') {
+        // lock
         icon = device.active === 'on' ? lockActive : lock;
-      } else if (device.iconnumber === '10') {
+      } else if (device.iconnumber === '8') {
+        // music
         icon = device.active === 'on' ? musicActive : music;
-      } else if (device.iconnumber === '11') {
+      } else if (device.iconnumber === '9') {
+        // fountain
         icon = device.active === 'on' ? fountainActive : fountain;
-      } else if (device.iconnumber === '12') {
+      } else if (device.iconnumber === '10') {
+        // light box
         icon = device.active === 'on' ? starActive : star;
       }
     }
