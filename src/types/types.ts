@@ -4,6 +4,12 @@ export const enum dataStatus {
   Loaded = 'Loaded',
 }
 
-export type colorTypes = 'black' | 'blue' | 'smoke' | 'purple' | 'navyBlue';
+export type colorTypes =
+  | 'black'
+  | 'blue'
+  | 'smoke'
+  | 'purple'
+  | 'navyBlue'
+  | 'red';
 
 export type deviceType = '1' | '2' | '16';
