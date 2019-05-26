@@ -22,13 +22,18 @@ const DevicesReducer = (
         });
         break;
       case DevicesActionTypes.UPDATE_STATUS:
-        const device = draft[action.deviceNumber]['A'];
+        let device = draft[action.deviceNumber]['A'];
+        if (!device) {
+          device = draft[action.deviceNumber]['B'];
+        }
         const deviceType = mapDeviceType(device.type);
         if (deviceType === 'lamp') {
-          if (action.part3 === '1') {
-            draft[action.deviceNumber]['A'].active = 'on';
-          } else if (action.part3 === '0') {
-            draft[action.deviceNumber]['A'].active = 'off';
+          if (draft[action.deviceNumber]['A']) {
+            if (action.part3 === '1') {
+              draft[action.deviceNumber]['A'].active = 'on';
+            } else if (action.part3 === '0') {
+              draft[action.deviceNumber]['A'].active = 'off';
+            }
           }
           if (draft[action.deviceNumber]['B']) {
             if (action.part4 === '1') {
@@ -46,6 +51,8 @@ const DevicesReducer = (
           draft[action.deviceNumber]['A'].cooling = action.part7 === '1';
         }
         break;
+      default:
+        return draft;
     }
   });
 

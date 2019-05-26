@@ -29,10 +29,6 @@ interface IStateToProps {
 
 type IComponentProps = IOwnProps & IStateToProps;
 
-interface IComponentStates {
-  loading: boolean;
-}
-
 interface ILoginFormProps {
   server: string;
   user: string;
@@ -40,16 +36,9 @@ interface ILoginFormProps {
   ip: string;
 }
 
-class SettingsScreen extends React.Component<
-  IComponentProps,
-  IComponentStates
-> {
+class SettingsScreen extends React.Component<IComponentProps> {
   static navigationOptions = {
     title: messages.settings,
-  };
-
-  state = {
-    loading: false,
   };
 
   signOutAsync = async () => {
@@ -58,7 +47,7 @@ class SettingsScreen extends React.Component<
     this.props.navigation.navigate('SignIn');
   };
 
-  handleSubmit = async (values: ILoginFormProps) => {
+  handleSubmit = async (values: ILoginFormProps, { setSubmitting }) => {
     const { user, password, ip, server } = values;
     if ((user.trim() !== '' && password.trim() !== '') || ip.trim() !== '') {
       xmpp.disconnect();
@@ -79,17 +68,16 @@ class SettingsScreen extends React.Component<
           if (message) {
             Alert.alert('Login Faild', message);
           }
-          this.setState({ loading: false });
+          setSubmitting(false);
         });
     } else {
       Alert.alert('Validation', 'Please enter valid credential');
-      this.setState({ loading: false });
+      setSubmitting(false);
     }
   };
 
   handleFolan = (onSubmit) => () => {
     onSubmit();
-    this.setState({ loading: true });
   };
 
   render() {
@@ -140,7 +128,7 @@ class SettingsScreen extends React.Component<
                 onPress={this.handleFolan(props.handleSubmit)}
                 title={messages.save}
                 color={'blue'}
-                loading={this.state.loading}
+                loading={props.isSubmitting}
               />
             </View>
           )}
