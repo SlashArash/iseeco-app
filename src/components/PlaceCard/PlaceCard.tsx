@@ -36,7 +36,7 @@ const requireIcon = (place: IPlace) => {
   } else if (place.iconNumber === '5') {
     icon = require(`../../../assets/images/icons/the-way-dark.png`);
   } else if (place.iconNumber === '6') {
-    icon = require(`../../../assets/images/icons/unknown-dark.png`);
+    icon = require(`../../../assets/images/icons/watering-dark.png`);
   } else if (place.iconNumber === '7') {
     icon = require(`../../../assets/images/icons/elevator-dark.png`);
   } else if (place.iconNumber === '8') {
