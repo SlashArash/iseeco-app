@@ -26,13 +26,25 @@ const requireIcon = (place: IPlace) => {
   let icon = require(`../../../assets/images/icons/unknown-dark.png`);
 
   if (place.iconNumber === '1') {
-    icon = require(`../../../assets/images/icons/bath-dark.png`);
+    icon = require(`../../../assets/images/icons/tv-dark.png`);
   } else if (place.iconNumber === '2') {
     icon = require(`../../../assets/images/icons/bed-dark.png`);
   } else if (place.iconNumber === '3') {
-    icon = require(`../../../assets/images/icons/washing-dark.png`);
+    icon = require(`../../../assets/images/icons/toilet-dark.png`);
   } else if (place.iconNumber === '4') {
-    icon = require(`../../../assets/images/icons/tv-dark.png`);
+    icon = require(`../../../assets/images/icons/washing-dark.png`);
+  } else if (place.iconNumber === '5') {
+    icon = require(`../../../assets/images/icons/the-way-dark.png`);
+  } else if (place.iconNumber === '6') {
+    icon = require(`../../../assets/images/icons/unknown-dark.png`);
+  } else if (place.iconNumber === '7') {
+    icon = require(`../../../assets/images/icons/elevator-dark.png`);
+  } else if (place.iconNumber === '8') {
+    icon = require(`../../../assets/images/icons/music-dark.png`);
+  } else if (place.iconNumber === '9') {
+    icon = require(`../../../assets/images/icons/lock-dark.png`);
+  } else if (place.iconNumber === '10') {
+    icon = require(`../../../assets/images/icons/star-dark.png`);
   }
   return icon;
 };
